@@ -1,11 +1,16 @@
 name: stream
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
 
 jobs:
   stream:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    concurrency:
+      group: twitch-stream
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
       - name: Install ffmpeg
