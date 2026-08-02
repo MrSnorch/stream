@@ -29,14 +29,12 @@ jobs:
               -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1" \
               -c:v libx264 -preset veryfast -pix_fmt yuv420p \
               "normalized/video_${i}.mp4"
-            echo "file 'video_${i}.mp4'" >> concat_list.txt
+            echo "file 'normalized/video_${i}.mp4'" >> concat_list.txt
           done < video_links.txt
           cat concat_list.txt
       - name: Stitch videos into one file
         run: |
-          cd normalized
-          ffmpeg -y -f concat -safe 0 -i ../concat_list.txt -c copy final_stream.mp4
-          mv final_stream.mp4 ../final_stream.mp4
+          ffmpeg -y -f concat -safe 0 -i concat_list.txt -c copy final_stream.mp4
       - name: Commit final video to repo
         run: |
           git config user.name "github-actions"
