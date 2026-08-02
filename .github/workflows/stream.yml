@@ -1,0 +1,18 @@
+name: stream
+on:
+  workflow_dispatch:
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Stream
+        run: |
+          ffmpeg -re -loop 1 -i picture.jpg -f lavfi -i anullsrc \
+            -c:v libx264 -preset veryfast -b:v 3000k -maxrate 3000k -bufsize 6000k \
+            -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
+            -f flv rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}
