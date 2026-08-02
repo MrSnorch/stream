@@ -13,19 +13,23 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
-      - name: Install yt-dlp and ffmpeg
+      - name: Install yt-dlp, ffmpeg, and deno
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg jq
+          sudo apt-get update && sudo apt-get install -y ffmpeg jq unzip
           pip install yt-dlp
+          curl -fsSL https://deno.land/install.sh | sh
+          echo "$HOME/.deno/bin" >> $GITHUB_PATH
+      - name: Write cookies file
+        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
       - name: Get video list
         run: |
-          yt-dlp --flat-playlist -j "https://www.youtube.com/@SoulboundOnlineTruth/videos" | jq -r '.id' > ids.txt
+          yt-dlp --cookies cookies.txt --flat-playlist -j "https://www.youtube.com/@SoulboundOnlineTruth/videos" | jq -r '.id' > ids.txt
           cat ids.txt
       - name: Build direct URL playlist
         run: |
           > urls.txt
           while read -r ID; do
-            URL=$(yt-dlp -f "best[height<=1080]" -g "https://www.youtube.com/watch?v=$ID")
+            URL=$(yt-dlp --cookies cookies.txt -f "best[height<=1080]" -g "https://www.youtube.com/watch?v=$ID")
             echo "file '$URL'" >> urls.txt
           done < ids.txt
           cat urls.txt
