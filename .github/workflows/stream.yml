@@ -23,13 +23,13 @@ jobs:
         run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
       - name: Get video list
         run: |
-          yt-dlp --cookies cookies.txt --flat-playlist -j "https://www.youtube.com/@SoulboundOnlineTruth/videos" | jq -r '.id' > ids.txt
+          yt-dlp --cookies cookies.txt --remote-components ejs:github --flat-playlist -j "https://www.youtube.com/@SoulboundOnlineTruth/videos" | jq -r '.id' > ids.txt
           cat ids.txt
       - name: Build direct URL playlist
         run: |
           > urls.txt
           while read -r ID; do
-            URL=$(yt-dlp --cookies cookies.txt -f "best[height<=1080]" -g "https://www.youtube.com/watch?v=$ID")
+            URL=$(yt-dlp --cookies cookies.txt --remote-components ejs:github -f "best[height<=1080]" -g "https://www.youtube.com/watch?v=$ID")
             echo "file '$URL'" >> urls.txt
           done < ids.txt
           cat urls.txt
