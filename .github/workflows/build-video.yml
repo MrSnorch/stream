@@ -21,18 +21,19 @@ jobs:
         run: |
           mkdir -p normalized
           > concat_list.txt
+          tr -d '\r' < video_links.txt > video_links_clean.txt
           i=0
           while read -r LINK; do
             [ -z "$LINK" ] && continue
             i=$((i+1))
             echo "Fetching and normalizing video $i: $LINK"
             DIRECT_URL=$(yt-dlp --cookies cookies.txt --remote-components ejs:github -f "best[height<=1080]" -g "$LINK")
-            ffmpeg -y -i "$DIRECT_URL" -an \
+            ffmpeg -y -nostdin -i "$DIRECT_URL" -an \
               -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1" \
               -c:v libx264 -preset veryfast -pix_fmt yuv420p \
               "normalized/video_${i}.mp4"
             echo "file 'normalized/video_${i}.mp4'" >> concat_list.txt
-          done < video_links.txt
+          done < video_links_clean.txt
           cat concat_list.txt
       - name: Stitch videos into one file
         run: |
