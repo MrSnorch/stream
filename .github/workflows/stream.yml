@@ -13,29 +13,13 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
-      - name: Install yt-dlp, ffmpeg, and deno
+      - name: Install git-lfs and ffmpeg
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg jq unzip
-          pip install yt-dlp
-          curl -fsSL https://deno.land/install.sh | sh
-          echo "$HOME/.deno/bin" >> $GITHUB_PATH
-      - name: Write cookies file
-        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
-      - name: Get video list
+          sudo apt-get update && sudo apt-get install -y ffmpeg git-lfs
+          git lfs pull
+      - name: Stream pre-built video on loop with background music
         run: |
-          yt-dlp --cookies cookies.txt --remote-components ejs:github --flat-playlist -j "https://www.youtube.com/@SoulboundOnlineTruth/videos" | jq -r '.id' > ids.txt
-          cat ids.txt
-      - name: Build direct URL playlist
-        run: |
-          > urls.txt
-          while read -r ID; do
-            URL=$(yt-dlp --cookies cookies.txt --remote-components ejs:github -f "best[height<=1080]" -g "https://www.youtube.com/watch?v=$ID")
-            echo "file '$URL'" >> urls.txt
-          done < ids.txt
-          cat urls.txt
-      - name: Stream all videos as one continuous stream with background music
-        run: |
-          ffmpeg -re -f concat -safe 0 -protocol_whitelist file,http,https,tcp,tls,crypto -i urls.txt \
+          ffmpeg -re -stream_loop -1 -i final_stream.mp4 \
             -stream_loop -1 -f concat -safe 0 -i playlist.txt \
             -map 0:v -map 1:a \
             -c:v libx264 -preset veryfast -b:v 3000k -maxrate 3000k -bufsize 6000k \
