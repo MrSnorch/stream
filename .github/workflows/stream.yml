@@ -12,7 +12,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Stream
         run: |
-          ffmpeg -re -loop 1 -i picture.png -stream_loop -1 -i music.mp3 \
+          ffmpeg -re -loop 1 -i picture.png -stream_loop -1 -i sigmamusicart-no-copyright-music-537751.mp3 \
             -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
             -c:v libx264 -preset veryfast -b:v 3000k -maxrate 3000k -bufsize 6000k \
             -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
