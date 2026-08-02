@@ -13,12 +13,27 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - name: Stream
+      - name: Install yt-dlp and ffmpeg
         run: |
-          ffmpeg -re -loop 1 -i picture.png -stream_loop -1 -f concat -safe 0 -i playlist.txt \
-            -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
+          sudo apt-get update && sudo apt-get install -y ffmpeg jq
+          pip install yt-dlp
+      - name: Get video list
+        run: |
+          yt-dlp --flat-playlist -j "https://www.youtube.com/@SoulboundOnlineTruth/videos" | jq -r '.id' > ids.txt
+          cat ids.txt
+      - name: Build direct URL playlist
+        run: |
+          > urls.txt
+          while read -r ID; do
+            URL=$(yt-dlp -f "best[height<=1080]" -g "https://www.youtube.com/watch?v=$ID")
+            echo "file '$URL'" >> urls.txt
+          done < ids.txt
+          cat urls.txt
+      - name: Stream all videos as one continuous stream with background music
+        run: |
+          ffmpeg -re -f concat -safe 0 -protocol_whitelist file,http,https,tcp,tls,crypto -i urls.txt \
+            -stream_loop -1 -f concat -safe 0 -i playlist.txt \
+            -map 0:v -map 1:a \
             -c:v libx264 -preset veryfast -b:v 3000k -maxrate 3000k -bufsize 6000k \
             -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
             -f flv rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}
