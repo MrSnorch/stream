@@ -9,6 +9,9 @@ TITLE = sys.argv[4] if len(sys.argv) > 4 else "Live Stream"
 DESCRIPTION = sys.argv[5] if len(sys.argv) > 5 else ""
 THUMBNAIL = sys.argv[6] if len(sys.argv) > 6 else None
 
+CATEGORY_ID = "20"  # Gaming
+LANGUAGE = "en"
+
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://www.googleapis.com/youtube/v3"
 
@@ -92,9 +95,28 @@ def set_thumbnail(token, broadcast_id, path):
     _raise_with_body(resp)
 
 
+def set_video_metadata(token, video_id):
+    resp = requests.put(
+        f"{API_BASE}/videos",
+        params={"part": "snippet"},
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "id": video_id,
+            "snippet": {
+                "title": TITLE,
+                "description": DESCRIPTION,
+                "categoryId": CATEGORY_ID,
+                "defaultLanguage": LANGUAGE,
+            },
+        },
+    )
+    _raise_with_body(resp)
+
+
 def main():
     token = get_access_token()
     broadcast_id = create_broadcast(token)
+    set_video_metadata(token, broadcast_id)
     stream_id, ingestion_address, stream_name = create_stream(token)
     bind_broadcast(token, broadcast_id, stream_id)
 
