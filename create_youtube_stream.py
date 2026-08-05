@@ -7,6 +7,7 @@ CLIENT_SECRET = sys.argv[2]
 REFRESH_TOKEN = sys.argv[3]
 TITLE = sys.argv[4] if len(sys.argv) > 4 else "Live Stream"
 DESCRIPTION = sys.argv[5] if len(sys.argv) > 5 else ""
+THUMBNAIL = sys.argv[6] if len(sys.argv) > 6 else None
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://www.googleapis.com/youtube/v3"
@@ -78,11 +79,25 @@ def bind_broadcast(token, broadcast_id, stream_id):
     _raise_with_body(resp)
 
 
+def set_thumbnail(token, broadcast_id, path):
+    with open(path, "rb") as f:
+        resp = requests.post(
+            f"{API_BASE}/thumbnails/set",
+            params={"videoId": broadcast_id},
+            headers={"Authorization": f"Bearer {token}"},
+            files={"media": f},
+        )
+    _raise_with_body(resp)
+
+
 def main():
     token = get_access_token()
     broadcast_id = create_broadcast(token)
     stream_id, ingestion_address, stream_name = create_stream(token)
     bind_broadcast(token, broadcast_id, stream_id)
+
+    if THUMBNAIL:
+        set_thumbnail(token, broadcast_id, THUMBNAIL)
 
     # Write outputs for the workflow to consume
     with open("yt_broadcast_id.txt", "w") as f:
