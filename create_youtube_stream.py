@@ -124,7 +124,13 @@ def set_video_metadata(token, video_id):
 def main():
     token = get_access_token()
     broadcast_id = create_broadcast(token)
+    with open("yt_broadcast_id.txt", "w") as f:
+        f.write(broadcast_id)
+
     stream_id, ingestion_address, stream_name = create_stream(token)
+    with open("yt_stream_id.txt", "w") as f:
+        f.write(stream_id)
+
     bind_broadcast(token, broadcast_id, stream_id)
 
     try:
@@ -135,11 +141,6 @@ def main():
     if THUMBNAIL:
         set_thumbnail(token, broadcast_id, THUMBNAIL)
 
-    # Write outputs for the workflow to consume
-    with open("yt_broadcast_id.txt", "w") as f:
-        f.write(broadcast_id)
-    with open("yt_stream_id.txt", "w") as f:
-        f.write(stream_id)
     with open("yt_rtmp_url.txt", "w") as f:
         f.write(f"{ingestion_address}/{stream_name}")
 
