@@ -5,7 +5,7 @@ on:
 jobs:
   stream:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 360
     concurrency:
       group: twitch-stream
       cancel-in-progress: true
@@ -20,6 +20,7 @@ jobs:
           ffmpeg -re -stream_loop -1 -i final_stream.mp4 \
             -stream_loop -1 -f concat -safe 0 -i playlist.txt \
             -map 0:v -map 1:a \
-            -c:v libx264 -preset veryfast -b:v 3000k -maxrate 3000k -bufsize 6000k \
+            -c:v libx264 -preset veryfast -b:v 6000k -maxrate 6000k -bufsize 12000k \
             -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
-            -f flv rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}
+            -f tee \
+            "[f=flv:onfail=ignore]rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}|[f=flv:onfail=ignore]rtmp://a.rtmp.youtube.com/live2/${{ secrets.YOUTUBE_KEY }}"
