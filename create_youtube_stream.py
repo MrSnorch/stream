@@ -96,29 +96,41 @@ def set_thumbnail(token, broadcast_id, path):
 
 
 def set_video_metadata(token, video_id):
-    resp = requests.put(
-        f"{API_BASE}/videos",
-        params={"part": "snippet"},
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "id": video_id,
-            "snippet": {
-                "title": TITLE,
-                "description": DESCRIPTION,
-                "categoryId": CATEGORY_ID,
-                "defaultLanguage": LANGUAGE,
-            },
+    body = {
+        "id": video_id,
+        "snippet": {
+            "title": TITLE,
+            "description": DESCRIPTION,
+            "categoryId": CATEGORY_ID,
+            "defaultLanguage": LANGUAGE,
         },
-    )
+    }
+    delays = [0, 2, 4, 8, 16]
+    for i, delay in enumerate(delays):
+        if delay:
+            time.sleep(delay)
+        resp = requests.put(
+            f"{API_BASE}/videos",
+            params={"part": "snippet"},
+            headers={"Authorization": f"Bearer {token}"},
+            json=body,
+        )
+        if resp.ok:
+            return
+        print(f"set_video_metadata attempt {i + 1} failed: {resp.status_code}", file=sys.stderr)
     _raise_with_body(resp)
 
 
 def main():
     token = get_access_token()
     broadcast_id = create_broadcast(token)
-    set_video_metadata(token, broadcast_id)
     stream_id, ingestion_address, stream_name = create_stream(token)
     bind_broadcast(token, broadcast_id, stream_id)
+
+    try:
+        set_video_metadata(token, broadcast_id)
+    except requests.exceptions.HTTPError:
+        print("Warning: failed to set category/language, continuing anyway", file=sys.stderr)
 
     if THUMBNAIL:
         set_thumbnail(token, broadcast_id, THUMBNAIL)
