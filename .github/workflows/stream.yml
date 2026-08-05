@@ -22,8 +22,16 @@ jobs:
             "${{ secrets.YOUTUBE_CLIENT_ID }}" \
             "${{ secrets.YOUTUBE_CLIENT_SECRET }}" \
             "${{ secrets.YOUTUBE_REFRESH_TOKEN }}" \
-            "Soulscam Stream" \
-            "24/7 автостриминг Soulscam"
+            "Before You Buy Soulbound: Online on Steam, Read Its Background in the Description 👇" \
+            "Never TRUST the developers of "Soulbound: Online". Their only goal is to steal your TIME and MONEY just like they did with their FAILED CRYPTO SCAMS. Stay vigilant and check the facts -   / before_you_wishlist_soulbound_online_on_steam   👈
+            
+            “Soulbound: Online” was previously known as “Worldwide Webb” — a failed crypto project created by Thomas Webb that has now been in active development for over 6 years.
+            
+            Over the years, the project raised millions of dollars from players and investors through NFTs, crypto marketing, and investment funding, only to end up as an unfinished, bug-filled product that was later quietly rebranded as “Soulbound: Online” before coming to Steam.
+            
+            The developers spent years making empty promises, censoring criticism, going silent, changing direction, and abandoning the community that originally funded the project.
+            
+            Now, trapped in endless development driven by sloppy vibecoding and plagued by constant server lag and game-breaking bugs, the project is heading straight toward yet another inevitable wipe — the third one — slated right upon leaving Early Access a year from now."
       - name: Stream pre-built video on loop with background music
         run: |
           YT_RTMP=$(cat yt_rtmp_url.txt)
