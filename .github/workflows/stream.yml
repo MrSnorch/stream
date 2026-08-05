@@ -35,7 +35,8 @@ jobs:
             "${{ secrets.YOUTUBE_CLIENT_SECRET }}" \
             "${{ secrets.YOUTUBE_REFRESH_TOKEN }}" \
             "$STREAM_TITLE" \
-            "$STREAM_DESCRIPTION"
+            "$STREAM_DESCRIPTION" \
+            "thumbnail.png"
       - name: Stream pre-built video on loop with background music
         run: |
           YT_RTMP=$(cat yt_rtmp_url.txt)
