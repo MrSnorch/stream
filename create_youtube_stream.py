@@ -80,13 +80,15 @@ def bind_broadcast(token, broadcast_id, stream_id):
 
 
 def set_thumbnail(token, broadcast_id, path):
+    content_type = "image/png" if path.lower().endswith(".png") else "image/jpeg"
     with open(path, "rb") as f:
-        resp = requests.post(
-            f"{API_BASE}/thumbnails/set",
-            params={"videoId": broadcast_id},
-            headers={"Authorization": f"Bearer {token}"},
-            files={"media": f},
-        )
+        image_data = f.read()
+    resp = requests.post(
+        "https://www.googleapis.com/upload/youtube/v3/thumbnails/set",
+        params={"videoId": broadcast_id, "uploadType": "media"},
+        headers={"Authorization": f"Bearer {token}", "Content-Type": content_type},
+        data=image_data,
+    )
     _raise_with_body(resp)
 
 
