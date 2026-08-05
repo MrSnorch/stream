@@ -6,6 +6,7 @@ CLIENT_ID = sys.argv[1]
 CLIENT_SECRET = sys.argv[2]
 REFRESH_TOKEN = sys.argv[3]
 TITLE = sys.argv[4] if len(sys.argv) > 4 else "Live Stream"
+DESCRIPTION = sys.argv[5] if len(sys.argv) > 5 else ""
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://www.googleapis.com/youtube/v3"
@@ -37,6 +38,7 @@ def create_broadcast(token):
         json={
             "snippet": {
                 "title": TITLE,
+                "description": DESCRIPTION,
                 "scheduledStartTime": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime()),
             },
             "status": {"privacyStatus": "public"},
