@@ -22,4 +22,5 @@ jobs:
             -map 0:v -map 1:a \
             -c:v libx264 -preset veryfast -b:v 3000k -maxrate 3000k -bufsize 6000k \
             -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
-            -f flv rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}
+            -f tee -map 0:v -map 1:a \
+            "[f=flv:onfail=ignore]rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}|[f=flv:onfail=ignore]rtmp://a.rtmp.youtube.com/live2/${{ secrets.YOUTUBE_KEY }}"
