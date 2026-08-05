@@ -11,6 +11,13 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://www.googleapis.com/youtube/v3"
 
 
+def _raise_with_body(resp):
+    if not resp.ok:
+        print(f"HTTP {resp.status_code} error body:", file=sys.stderr)
+        print(resp.text, file=sys.stderr)
+    resp.raise_for_status()
+
+
 def get_access_token():
     resp = requests.post(TOKEN_URL, data={
         "client_id": CLIENT_ID,
@@ -18,7 +25,7 @@ def get_access_token():
         "refresh_token": REFRESH_TOKEN,
         "grant_type": "refresh_token",
     })
-    resp.raise_for_status()
+    _raise_with_body(resp)
     return resp.json()["access_token"]
 
 
@@ -36,7 +43,7 @@ def create_broadcast(token):
             "contentDetails": {"enableAutoStart": True, "enableAutoStop": True},
         },
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     return resp.json()["id"]
 
 
@@ -54,7 +61,7 @@ def create_stream(token):
             },
         },
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
     data = resp.json()
     ingestion = data["cdn"]["ingestionInfo"]
     return data["id"], ingestion["ingestionAddress"], ingestion["streamName"]
@@ -66,7 +73,7 @@ def bind_broadcast(token, broadcast_id, stream_id):
         params={"id": broadcast_id, "part": "id,contentDetails", "streamId": stream_id},
         headers={"Authorization": f"Bearer {token}"},
     )
-    resp.raise_for_status()
+    _raise_with_body(resp)
 
 
 def main():
