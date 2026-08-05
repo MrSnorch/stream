@@ -104,6 +104,8 @@ def main():
     # Write outputs for the workflow to consume
     with open("yt_broadcast_id.txt", "w") as f:
         f.write(broadcast_id)
+    with open("yt_stream_id.txt", "w") as f:
+        f.write(stream_id)
     with open("yt_rtmp_url.txt", "w") as f:
         f.write(f"{ingestion_address}/{stream_name}")
 
