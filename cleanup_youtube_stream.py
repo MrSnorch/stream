@@ -1,4 +1,5 @@
 import sys
+import time
 import requests
 
 CLIENT_ID = sys.argv[1]
@@ -17,22 +18,35 @@ def _raise_with_body(resp):
 
 
 def get_access_token():
-    resp = requests.post(TOKEN_URL, data={
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "refresh_token": REFRESH_TOKEN,
-        "grant_type": "refresh_token",
-    })
+    delays = [0, 3, 6]
+    for i, delay in enumerate(delays):
+        if delay:
+            time.sleep(delay)
+        resp = requests.post(TOKEN_URL, data={
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "refresh_token": REFRESH_TOKEN,
+            "grant_type": "refresh_token",
+        })
+        if resp.ok:
+            return resp.json()["access_token"]
+        print(f"get_access_token attempt {i + 1} failed: {resp.status_code}", file=sys.stderr)
     _raise_with_body(resp)
-    return resp.json()["access_token"]
 
 
 def delete_stream(token, stream_id):
-    resp = requests.delete(
-        f"{API_BASE}/liveStreams",
-        params={"id": stream_id},
-        headers={"Authorization": f"Bearer {token}"},
-    )
+    delays = [0, 15, 30, 60, 120]
+    for i, delay in enumerate(delays):
+        if delay:
+            time.sleep(delay)
+        resp = requests.delete(
+            f"{API_BASE}/liveStreams",
+            params={"id": stream_id},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        if resp.ok:
+            return
+        print(f"delete_stream attempt {i + 1} failed: {resp.status_code}", file=sys.stderr)
     _raise_with_body(resp)
 
 
