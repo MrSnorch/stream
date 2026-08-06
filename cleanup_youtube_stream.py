@@ -47,6 +47,7 @@ def delete_stream(token, stream_id):
         if resp.ok:
             return
         print(f"delete_stream attempt {i + 1} failed: {resp.status_code}", file=sys.stderr)
+        print(resp.text, file=sys.stderr)
     _raise_with_body(resp)
 
 
