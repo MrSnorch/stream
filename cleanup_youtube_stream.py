@@ -47,6 +47,19 @@ def get_broadcast_status(token, broadcast_id):
     return items[0]["status"]["lifeCycleStatus"]
 
 
+def transition_to_complete(token, broadcast_id):
+    resp = requests.post(
+        f"{API_BASE}/liveBroadcasts/transition",
+        params={"id": broadcast_id, "broadcastStatus": "complete", "part": "id,status"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    if resp.ok:
+        return True
+    print(f"transition_to_complete failed: {resp.status_code}", file=sys.stderr)
+    print(resp.text, file=sys.stderr)
+    return False
+
+
 def wait_for_broadcast_complete(token, broadcast_id):
     delays = [0, 15, 30, 60, 60, 60]
     for i, delay in enumerate(delays):
@@ -56,6 +69,8 @@ def wait_for_broadcast_complete(token, broadcast_id):
         print(f"Broadcast status check {i + 1}: {status}", file=sys.stderr)
         if status == "complete":
             return True
+        if status == "live":
+            transition_to_complete(token, broadcast_id)
     return False
 
 
