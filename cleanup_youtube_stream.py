@@ -34,13 +34,29 @@ def get_access_token():
     _raise_with_body(resp)
 
 
-def unbind_broadcast(token, broadcast_id):
-    resp = requests.post(
-        f"{API_BASE}/liveBroadcasts/bind",
-        params={"id": broadcast_id, "part": "id,contentDetails"},
+def get_broadcast_status(token, broadcast_id):
+    resp = requests.get(
+        f"{API_BASE}/liveBroadcasts",
+        params={"id": broadcast_id, "part": "status"},
         headers={"Authorization": f"Bearer {token}"},
     )
     _raise_with_body(resp)
+    items = resp.json().get("items", [])
+    if not items:
+        return None
+    return items[0]["status"]["lifeCycleStatus"]
+
+
+def wait_for_broadcast_complete(token, broadcast_id):
+    delays = [0, 15, 30, 60, 60, 60]
+    for i, delay in enumerate(delays):
+        if delay:
+            time.sleep(delay)
+        status = get_broadcast_status(token, broadcast_id)
+        print(f"Broadcast status check {i + 1}: {status}", file=sys.stderr)
+        if status == "complete":
+            return True
+    return False
 
 
 def delete_stream(token, stream_id):
@@ -79,8 +95,7 @@ def main():
     token = get_access_token()
 
     if broadcast_id:
-        unbind_broadcast(token, broadcast_id)
-        print(f"Unbound broadcast {broadcast_id}", file=sys.stderr)
+        wait_for_broadcast_complete(token, broadcast_id)
 
     delete_stream(token, stream_id)
     print(f"Deleted stream {stream_id}", file=sys.stderr)
