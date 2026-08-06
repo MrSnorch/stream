@@ -34,6 +34,15 @@ def get_access_token():
     _raise_with_body(resp)
 
 
+def unbind_broadcast(token, broadcast_id):
+    resp = requests.post(
+        f"{API_BASE}/liveBroadcasts/bind",
+        params={"id": broadcast_id, "part": "id,contentDetails"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    _raise_with_body(resp)
+
+
 def delete_stream(token, stream_id):
     delays = [0, 15, 30, 60, 120]
     for i, delay in enumerate(delays):
@@ -61,12 +70,18 @@ def read_id(path):
 
 def main():
     stream_id = read_id("yt_stream_id.txt")
+    broadcast_id = read_id("yt_broadcast_id.txt")
 
     if not stream_id:
         print("No stream id file found, nothing to clean up.", file=sys.stderr)
         return
 
     token = get_access_token()
+
+    if broadcast_id:
+        unbind_broadcast(token, broadcast_id)
+        print(f"Unbound broadcast {broadcast_id}", file=sys.stderr)
+
     delete_stream(token, stream_id)
     print(f"Deleted stream {stream_id}", file=sys.stderr)
 
