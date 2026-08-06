@@ -37,6 +37,12 @@ jobs:
             "$STREAM_TITLE" \
             "$STREAM_DESCRIPTION" \
             "thumbnail.png"
+      - name: Send YouTube chat messages
+        run: |
+          python3 send_youtube_chat.py \
+            "${{ secrets.YOUTUBE_CLIENT_ID }}" \
+            "${{ secrets.YOUTUBE_CLIENT_SECRET }}" \
+            "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
       - name: Stream pre-built video on loop with background music
         run: |
           YT_RTMP=$(cat yt_rtmp_url.txt)
