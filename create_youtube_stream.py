@@ -56,7 +56,8 @@ def create_broadcast(token):
         },
     )
     _raise_with_body(resp)
-    return resp.json()["id"]
+    data = resp.json()
+    return data["id"], data["snippet"]["liveChatId"]
 
 
 def create_stream(token):
@@ -129,9 +130,11 @@ def set_video_metadata(token, video_id):
 
 def main():
     token = get_access_token()
-    broadcast_id = create_broadcast(token)
+    broadcast_id, live_chat_id = create_broadcast(token)
     with open("yt_broadcast_id.txt", "w") as f:
         f.write(broadcast_id)
+    with open("yt_live_chat_id.txt", "w") as f:
+        f.write(live_chat_id)
 
     stream_id, ingestion_address, stream_name = create_stream(token)
     with open("yt_stream_id.txt", "w") as f:
