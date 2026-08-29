@@ -11,10 +11,20 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Cache LFS video (skip re-download if unchanged)
+        id: lfs-cache
+        uses: actions/cache@v4
+        with:
+          path: final_stream.mp4
+          key: lfs-${{ hashFiles('final_stream.mp4') }}
       - name: Install git-lfs and ffmpeg
         run: |
           sudo apt-get update && sudo apt-get install -y ffmpeg git-lfs
-          git lfs pull
+      - name: Pull LFS video (only if not cached)
+        if: steps.lfs-cache.outputs.cache-hit != 'true'
+        run: git lfs pull
       - name: Create YouTube live broadcast
         env:
           STREAM_TITLE: "Before You Buy Soulbound: Online on Steam, Read Its Background in the Description 👇"
