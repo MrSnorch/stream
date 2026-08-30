@@ -13,9 +13,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: false
-      - name: Cache LFS video (skip re-download if unchanged)
+      - name: Restore cached LFS video (skip re-download if unchanged)
         id: lfs-cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: final_stream.mp4
           key: lfs-${{ hashFiles('final_stream.mp4') }}
@@ -25,6 +25,12 @@ jobs:
       - name: Pull LFS video (only if not cached)
         if: steps.lfs-cache.outputs.cache-hit != 'true'
         run: git lfs pull
+      - name: Save LFS video to cache (before the long stream step)
+        if: steps.lfs-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: final_stream.mp4
+          key: lfs-${{ hashFiles('final_stream.mp4') }}
       - name: Create YouTube live broadcast
         env:
           STREAM_TITLE: "Before You Buy Soulbound: Online on Steam, Read Its Background in the Description 👇"
