@@ -33,7 +33,7 @@ jobs:
           key: lfs-${{ hashFiles('final_stream.mp4') }}
       - name: Create YouTube live broadcast
         env:
-          STREAM_TITLE: "Before You Buy Soulbound: Online on Steam, Read Its Background in the Description 👇"
+          STREAM_TITLE: "⚠️ SCAM ALERT - Soulbound: Online on Steam, Read Its Background in the Description 👇"
           STREAM_DESCRIPTION: |
             Never TRUST the developers of "Soulbound: Online". Their only goal is to steal your TIME and MONEY just like they did with their FAILED CRYPTO SCAMS. Stay vigilant and check the facts - https://www.reddit.com/r/MMORPG/comments/1tn4gd6/before_you_wishlist_soulbound_online_on_steam/ 👈
             
