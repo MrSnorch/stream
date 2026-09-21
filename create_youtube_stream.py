@@ -52,7 +52,7 @@ def create_broadcast(token):
                 "scheduledStartTime": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime()),
             },
             "status": {"privacyStatus": "public"},
-            "contentDetails": {"enableAutoStart": True, "enableAutoStop": True},
+            "contentDetails": {"enableAutoStart": True, "enableAutoStop": False},
         },
     )
     _raise_with_body(resp)
