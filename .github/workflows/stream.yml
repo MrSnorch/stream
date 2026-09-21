@@ -60,15 +60,41 @@ jobs:
             "${{ secrets.YOUTUBE_CLIENT_SECRET }}" \
             "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
       - name: Stream pre-built video on loop with background music
+        env:
+          TWITCH_KEY: ${{ secrets.TWITCH_KEY }}
         run: |
           YT_RTMP=$(cat yt_rtmp_url.txt)
-          ffmpeg -re -stream_loop -1 -i final_stream.mp4 \
-            -stream_loop -1 -f concat -safe 0 -i playlist.txt \
-            -map 0:v -map 1:a \
-            -c:v libx264 -preset veryfast -b:v 6000k -maxrate 6000k -bufsize 12000k \
-            -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
-            -f tee \
-            "[f=flv:onfail=ignore]rtmp://live.twitch.tv/app/${{ secrets.TWITCH_KEY }}|[f=flv:onfail=ignore]${YT_RTMP}"
+
+          # Общие параметры: RTMP-таймаут 15 с (в микросекундах), чтобы зависший
+          # сокет не держал ffmpeg по 16 минут, а падал сразу и перезапускался.
+          run_output () {
+            local name="$1" url="$2"
+            local attempt=0
+            while true; do
+              attempt=$((attempt + 1))
+              echo "[$name] запуск ffmpeg, попытка $attempt ($(date -u +%H:%M:%S))"
+              ffmpeg -nostdin -hide_banner -loglevel warning -stats_period 60 \
+                -re -stream_loop -1 -i final_stream.mp4 \
+                -stream_loop -1 -f concat -safe 0 -i playlist.txt \
+                -map 0:v -map 1:a \
+                -c:v libx264 -preset veryfast -b:v 6000k -maxrate 6000k -bufsize 12000k \
+                -pix_fmt yuv420p -g 60 -c:a aac -b:a 128k \
+                -rw_timeout 15000000 \
+                -f flv "$url" \
+                && echo "[$name] ffmpeg завершился штатно" \
+                || echo "[$name] ffmpeg упал с кодом $?, перезапуск через 5 с"
+              sleep 5
+            done
+          }
+
+          run_output twitch  "rtmp://live.twitch.tv/app/${TWITCH_KEY}" &
+          PID_TW=$!
+          run_output youtube "${YT_RTMP}" &
+          PID_YT=$!
+
+          # Держим шаг живым, пока job не будет отменён/не истечёт timeout-minutes.
+          trap 'kill $PID_TW $PID_YT 2>/dev/null; exit 0' TERM INT
+          wait $PID_TW $PID_YT
       - name: Clean up YouTube stream key
         if: always()
         run: |
