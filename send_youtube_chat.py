@@ -47,20 +47,37 @@ def get_access_token():
 
 
 def send_message(token, live_chat_id, message):
-    resp = requests.post(
-        f"{API_BASE}/liveChat/messages",
-        params={"part": "snippet"},
-        headers={"Authorization": f"Bearer {token}"},
-        json={
-            "snippet": {
-                "liveChatId": live_chat_id,
-                "type": "textMessageEvent",
-                "textMessageDetails": {"messageText": message},
-            },
-        },
-    )
-    _raise_with_body(resp)
-    return resp.json()
+    """Отправка с ретраями: 5xx и сетевые ошибки повторяем, 4xx — нет."""
+    delays = [0, 5, 15, 30]
+    last_exc = None
+    for i, delay in enumerate(delays):
+        if delay:
+            time.sleep(delay)
+        try:
+            resp = requests.post(
+                f"{API_BASE}/liveChat/messages",
+                params={"part": "snippet"},
+                headers={"Authorization": f"Bearer {token}"},
+                json={
+                    "snippet": {
+                        "liveChatId": live_chat_id,
+                        "type": "textMessageEvent",
+                        "textMessageDetails": {"messageText": message},
+                    },
+                },
+                timeout=30,
+            )
+        except (requests.ConnectionError, requests.Timeout) as e:
+            print(f"send_message attempt {i + 1}: сетевая ошибка {e}", file=sys.stderr)
+            last_exc = e
+            continue
+        if resp.status_code >= 500:
+            print(f"send_message attempt {i + 1}: HTTP {resp.status_code}, повторяю", file=sys.stderr)
+            last_exc = requests.HTTPError(response=resp)
+            continue
+        _raise_with_body(resp)
+        return resp.json()
+    raise last_exc
 
 
 def load_messages():
@@ -84,9 +101,10 @@ def main():
     for i, message in enumerate(messages):
         try:
             send_message(token, live_chat_id, message)
-        except requests.HTTPError as e:
+        except requests.RequestException as e:
             print(f"Сообщение {i + 1}/{len(messages)} НЕ отправлено: {message!r}", file=sys.stderr)
-            print(f"Ошибка YouTube: {e.response.status_code} {e.response.text}", file=sys.stderr)
+            resp = getattr(e, 'response', None)
+            print(f"Ошибка YouTube: {resp.status_code if resp is not None else 'network'} {resp.text if resp is not None else e}", file=sys.stderr)
             continue
         print(f"Сообщение {i + 1}/{len(messages)} отправлено: {message!r}")
 
